@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Wellness Dashboard - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-body text-center">
+                <h2 class="mb-3">
+                    <i class="fas fa-tachometer-alt mood-icon me-2"></i>
+                    Wellness Dashboard
+                </h2>
+                <p class="lead">Your comprehensive wellness overview comparing weekly and monthly progress</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wellness Score Comparison -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-week mood-icon me-2"></i>
+                    This Week
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                {% if week_wellness %}
+                <div class="wellness-score-display mb-3">
+                    <div class="score-circle mx-auto mb-3" style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(var(--mood-primary) {{ week_wellness.percentage }}%, var(--mood-light) 0); display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="font-size: 1.3rem; font-weight: bold; color: var(--mood-primary);">{{ week_wellness.total_score|round|int }}</span>
+                            <small class="text-muted">/ {{ week_wellness.max_score }}</small>
+                        </div>
+                    </div>
+                    <h5 class="mood-text">{{ week_wellness.level }}</h5>
+                    <p class="small">{{ week_wellness.message }}</p>
+                </div>
+                
+                <div class="row text-center">
+                    {% for component, score in week_wellness.components.items() %}
+                    <div class="col-6 mb-2">
+                        <div class="component-score p-2 rounded" style="background: var(--mood-light);">
+                            <small class="text-muted d-block">{{ component.replace('_', ' ').title() }}</small>
+                            <strong style="color: var(--mood-primary);">{{ score|round|int }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Not enough data for this week</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt mood-icon me-2"></i>
+                    This Month
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                {% if month_wellness %}
+                <div class="wellness-score-display mb-3">
+                    <div class="score-circle mx-auto mb-3" style="width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(var(--mood-primary) {{ month_wellness.percentage }}%, var(--mood-light) 0); display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="font-size: 1.3rem; font-weight: bold; color: var(--mood-primary);">{{ month_wellness.total_score|round|int }}</span>
+                            <small class="text-muted">/ {{ month_wellness.max_score }}</small>
+                        </div>
+                    </div>
+                    <h5 class="mood-text">{{ month_wellness.level }}</h5>
+                    <p class="small">{{ month_wellness.message }}</p>
+                </div>
+                
+                <div class="row text-center">
+                    {% for component, score in month_wellness.components.items() %}
+                    <div class="col-6 mb-2">
+                        <div class="component-score p-2 rounded" style="background: var(--mood-light);">
+                            <small class="text-muted d-block">{{ component.replace('_', ' ').title() }}</small>
+                            <strong style="color: var(--mood-primary);">{{ score|round|int }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Not enough data for this month</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Comparison -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar mood-icon me-2"></i>
+                    Progress Comparison
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Mood Progress -->
+                    <div class="col-md-4">
+                        <h6 class="text-center mb-3">Mood Tracking</h6>
+                        <div class="progress-comparison">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Week</span>
+                                <span>{{ week_analytics.mood.total_entries if week_analytics.mood else 0 }} check-ins</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Month</span>
+                                <span>{{ month_analytics.mood.total_entries if month_analytics.mood else 0 }} check-ins</span>
+                            </div>
+                            
+                            {% if week_analytics.mood and month_analytics.mood %}
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    {% if week_analytics.mood.total_entries > (month_analytics.mood.total_entries / 4.3)|int %}
+                                        📈 Above average this week!
+                                    {% else %}
+                                        💙 Consistent tracking
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Habit Progress -->
+                    <div class="col-md-4">
+                        <h6 class="text-center mb-3">Habit Building</h6>
+                        <div class="progress-comparison">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Week</span>
+                                <span>{{ "%.0f"|format((week_analytics.habits.overall_completion_rate * 100) if week_analytics.habits else 0) }}%</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Month</span>
+                                <span>{{ "%.0f"|format((month_analytics.habits.overall_completion_rate * 100) if month_analytics.habits else 0) }}%</span>
+                            </div>
+                            
+                            {% if week_analytics.habits and month_analytics.habits %}
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    {% if week_analytics.habits.overall_completion_rate > month_analytics.habits.overall_completion_rate %}
+                                        🌱 Improving this week!
+                                    {% else %}
+                                        🎯 Stay consistent
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Journal Progress -->
+                    <div class="col-md-4">
+                        <h6 class="text-center mb-3">Journal Writing</h6>
+                        <div class="progress-comparison">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Week</span>
+                                <span>{{ week_analytics.journal.total_entries if week_analytics.journal else 0 }} entries</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Month</span>
+                                <span>{{ month_analytics.journal.total_entries if month_analytics.journal else 0 }} entries</span>
+                            </div>
+                            
+                            {% if week_analytics.journal and month_analytics.journal %}
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    {% if week_analytics.journal.total_entries > (month_analytics.journal.total_entries / 4.3)|int %}
+                                        ✍️ More reflective this week!
+                                    {% else %}
+                                        📚 Keep reflecting
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Analytics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-heart mood-icon me-2"></i>
+                    Weekly Mood Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if week_analytics.mood %}
+                <div class="text-center mb-3">
+                    <h4 style="color: var(--mood-primary);">{{ week_analytics.mood.most_common_mood|title }}</h4>
+                    <small class="text-muted">Most frequent mood this week</small>
+                </div>
+                
+                <div class="mood-distribution-mini">
+                    {% for mood, count in week_analytics.mood.mood_distribution.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            {% if mood == 'happy' %}
+                                <i class="fas fa-sun text-warning me-2"></i>
+                            {% elif mood == 'sad' %}
+                                <i class="fas fa-cloud text-primary me-2"></i>
+                            {% elif mood == 'anxious' %}
+                                <i class="fas fa-leaf text-success me-2"></i>
+                            {% elif mood == 'energized' %}
+                                <i class="fas fa-bolt text-danger me-2"></i>
+                            {% else %}
+                                <i class="fas fa-circle text-secondary me-2"></i>
+                            {% endif %}
+                            {{ mood|title }}
+                        </div>
+                        <span class="badge" style="background: var(--mood-primary); color: white;">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No mood data for this week yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-seedling mood-icon me-2"></i>
+                    Weekly Habit Focus
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if week_analytics.habits and week_analytics.habits.best_habits %}
+                <div class="text-center mb-3">
+                    <h4 style="color: var(--mood-primary);">{{ "%.0f"|format(week_analytics.habits.overall_completion_rate * 100) }}%</h4>
+                    <small class="text-muted">Completion rate this week</small>
+                </div>
+                
+                <div class="habit-focus">
+                    {% for habit_name, stats in week_analytics.habits.best_habits[:3] %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ habit_name }}</span>
+                        <span class="badge" style="background: var(--mood-primary); color: white;">{{ "%.0f"|format(stats.completion_rate * 100) }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Start tracking habits to see your progress here</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights & Recommendations -->
+<div class="row">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb mood-icon me-2"></i>
+                    Wellness Insights
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>🌟 Strengths This Week</h6>
+                        <ul class="list-unstyled">
+                            {% if week_analytics.mood and week_analytics.mood.total_entries > 3 %}
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Great consistency with mood check-ins
+                            </li>
+                            {% endif %}
+                            {% if week_analytics.habits and week_analytics.habits.overall_completion_rate > 0.7 %}
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Strong habit completion rate
+                            </li>
+                            {% endif %}
+                            {% if week_analytics.journal and week_analytics.journal.total_entries > 2 %}
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Active journaling and self-reflection
+                            </li>
+                            {% endif %}
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Committed to your wellness journey
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>💡 Growth Opportunities</h6>
+                        <ul class="list-unstyled">
+                            {% if not week_analytics.mood or week_analytics.mood.total_entries < 3 %}
+                            <li class="mb-2">
+                                <i class="fas fa-arrow-up text-info me-2"></i>
+                                Try checking in with your mood daily
+                            </li>
+                            {% endif %}
+                            {% if not week_analytics.habits or week_analytics.habits.overall_completion_rate < 0.5 %}
+                            <li class="mb-2">
+                                <i class="fas fa-arrow-up text-info me-2"></i>
+                                Focus on one habit at a time for better success
+                            </li>
+                            {% endif %}
+                            {% if not week_analytics.journal or week_analytics.journal.total_entries < 2 %}
+                            <li class="mb-2">
+                                <i class="fas fa-arrow-up text-info me-2"></i>
+                                Journaling can deepen your self-awareness
+                            </li>
+                            {% endif %}
+                            <li class="mb-2">
+                                <i class="fas fa-arrow-up text-info me-2"></i>
+                                Remember: progress, not perfection
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <div class="alert alert-light">
+                        <i class="fas fa-heart text-danger me-2"></i>
+                        <strong>Remember:</strong> Every step you take toward understanding and caring for your mental health is a victory. 
+                        Your awareness and effort are already making a difference. Be proud of your commitment to yourself.
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{{ url_for('mood_checkin') }}" class="btn mood-btn me-2">
+                            <i class="fas fa-heart me-2"></i>Check-in Now
+                        </a>
+                        <a href="{{ url_for('analytics') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-chart-area me-2"></i>View Detailed Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

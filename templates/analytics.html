@@ -1,0 +1,564 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-body text-center">
+                <h2 class="mb-3">
+                    <i class="fas fa-chart-area mood-icon me-2"></i>
+                    Comprehensive Analytics
+                </h2>
+                <p class="lead">Deep insights into your wellness journey over the last {{ period }} days</p>
+
+                <!-- Period selector -->
+                <div class="btn-group mt-3" role="group">
+                    <a href="{{ url_for('analytics', period=7) }}" class="btn btn-sm {% if period == 7 %}mood-btn{% else %}btn-outline-secondary{% endif %}">7 Days</a>
+                    <a href="{{ url_for('analytics', period=30) }}" class="btn btn-sm {% if period == 30 %}mood-btn{% else %}btn-outline-secondary{% endif %}">30 Days</a>
+                    <a href="{{ url_for('analytics', period=90) }}" class="btn btn-sm {% if period == 90 %}mood-btn{% else %}btn-outline-secondary{% endif %}">90 Days</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wellness Score -->
+{% if wellness_score %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy mood-icon me-2"></i>
+                    Your Wellness Score
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="wellness-score-display mb-3">
+                    <div class="score-circle mx-auto mb-3" style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--mood-primary) {{ wellness_score.percentage }}%, var(--mood-light) 0); display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 90px; height: 90px; border-radius: 50%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="font-size: 1.5rem; font-weight: bold; color: var(--mood-primary);">{{ wellness_score.total_score|round|int }}</span>
+                            <small class="text-muted">/ {{ wellness_score.max_score }}</small>
+                        </div>
+                    </div>
+                    <h4 class="mood-text">{{ wellness_score.level }}</h4>
+                    <p class="lead">{{ wellness_score.message }}</p>
+                </div>
+
+                <div class="row">
+                    {% for component, score in wellness_score.components.items() %}
+                    <div class="col-md-3 col-6 mb-2">
+                        <div class="component-score p-2 rounded" style="background: var(--mood-light);">
+                            <small class="text-muted d-block">{{ component.replace('_', ' ').title() }}</small>
+                            <strong style="color: var(--mood-primary);">{{ score|round|int }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Enhanced Mood Analytics -->
+{% if mood_analytics %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-heart mood-icon me-2"></i>
+                    Mood Patterns Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ mood_analytics.total_entries }}</h3>
+                            <small class="text-muted">Total Check-ins</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ mood_analytics.most_common_mood|title }}</h3>
+                            <small class="text-muted">Most Common</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ "%.1f"|format(mood_analytics.average_intensity) }}</h3>
+                            <small class="text-muted">Avg Intensity</small>
+                        </div>
+                    </div>
+                </div>
+
+                <h6>Mood Distribution</h6>
+                <canvas id="moodDistributionChart" style="height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-fire mood-icon me-2"></i>
+                    Mood Streaks
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if mood_analytics.mood_streaks %}
+                {% for mood, streak in mood_analytics.mood_streaks.items() %}
+                <div class="streak-item d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="background: var(--mood-light);">
+                    <span>{{ mood|title }}</span>
+                    <span class="badge" style="background: var(--mood-primary); color: white;">{{ streak }} days</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Mood Analytics Charts -->
+<div class="row mb-4">
+    <!-- Mood Intensity Over Time -->
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line mood-icon me-2"></i>
+                    Intensity Trends
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="moodIntensityChart" style="height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Activity Heatmap -->
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-calendar-check mood-icon me-2"></i>
+                    Activity Heatmap
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="activityHeatmap" style="height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Enhanced Habit Analytics -->
+{% if habit_analytics %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-seedling mood-icon me-2"></i>
+                    Habit Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h3 style="color: var(--mood-primary);">{{ "%.1f"|format(habit_analytics.overall_completion_rate * 100) }}%</h3>
+                    <small class="text-muted">Overall Completion Rate</small>
+                </div>
+
+                <div class="habit-stats">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Attempts</span>
+                        <strong>{{ habit_analytics.total_attempts }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Completed</span>
+                        <strong class="text-success">{{ habit_analytics.total_completed }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Habit Completion Radar Chart -->
+    <div class="col-md-8">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-area mood-icon me-2"></i>
+                    Habit Performance Radar
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="habitRadarChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Habit Charts -->
+<div class="row mb-4">
+    <!-- Habit Progression Bar Chart -->
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar mood-icon me-2"></i>
+                    Habit Progression
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="habitProgressChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performing Habits -->
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-star mood-icon me-2"></i>
+                    Top Performing Habits
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for habit_name, stats in habit_analytics.best_habits %}
+                <div class="habit-performance mb-2 p-2 rounded" style="background: var(--mood-light);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>{{ habit_name }}</span>
+                        <span class="badge" style="background: var(--mood-primary); color: white;">{{ "%.0f"|format(stats.completion_rate * 100) }}%</span>
+                    </div>
+                    <small class="text-muted">{{ stats.completed }}/{{ stats.total }} completed</small>
+                </div>
+                {% endfor %}
+
+                <div class="mt-3">
+                    <h6>Success Rate Distribution</h6>
+                    <canvas id="habitSuccessChart" style="height: 200px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Journal Analytics -->
+{% if journal_analytics %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-book-open mood-icon me-2"></i>
+                    Journal Insights
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ journal_analytics.total_entries }}</h3>
+                            <small class="text-muted">Total Entries</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ journal_analytics.total_words|int }}</h3>
+                            <small class="text-muted">Total Words</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ journal_analytics.average_words_per_entry|int }}</h3>
+                            <small class="text-muted">Avg Words/Entry</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ journal_analytics.most_entries_in_day }}</h3>
+                            <small class="text-muted">Most in One Day</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent multiple initializations
+    if (window.analyticsChartsInitialized) {
+        return;
+    }
+    window.analyticsChartsInitialized = true;
+
+    // Clean up any existing charts
+    if (window.Chart) {
+        Object.keys(Chart.instances).forEach(key => {
+            Chart.instances[key].destroy();
+        });
+    }
+
+    const moodColors = {
+        'happy': '#fbbf24',
+        'sad': '#3b82f6', 
+        'anxious': '#10b981',
+        'energized': '#ef4444',
+        'neutral': '#6b7280'
+    };
+
+{% if mood_analytics and mood_analytics.mood_distribution %}
+// 1. Mood Distribution Chart
+const moodDistData = {{ mood_analytics.mood_distribution | tojson | safe }};
+const moodDistCanvas = document.getElementById('moodDistributionChart');
+if (moodDistCanvas) {
+    new Chart(moodDistCanvas, {
+        type: 'polarArea',
+        data: {
+            labels: Object.keys(moodDistData).map(m => m.charAt(0).toUpperCase() + m.slice(1)),
+            datasets: [{
+                data: Object.values(moodDistData),
+                backgroundColor: Object.keys(moodDistData).map(mood => moodColors[mood] + '80' || '#6b728080'),
+                borderColor: Object.keys(moodDistData).map(mood => moodColors[mood] || '#6b7280'),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.2,
+            plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'Mood Distribution (Polar Area)' }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.1)' }
+                }
+            }
+        }
+    });
+}
+
+// 2. Mood Intensity Over Time
+const intensityCanvas = document.getElementById('moodIntensityChart');
+if (intensityCanvas) {
+    // Simulate intensity data over time
+    const intensityData = {{ mood_analytics.intensity_over_time | tojson | safe if mood_analytics.intensity_over_time else '[]' }};
+
+    new Chart(intensityCanvas, {
+        type: 'line',
+        data: {
+            labels: intensityData.map(d => d.date) || ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'],
+            datasets: [{
+                label: 'Average Intensity',
+                data: intensityData.map(d => d.intensity) || [6.2, 7.1, 5.8, 8.0, 6.5],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#667eea'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            scales: {
+                y: { beginAtZero: true, max: 10, title: { display: true, text: 'Intensity' } },
+                x: { title: { display: true, text: 'Time Period' } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Mood Intensity Trends' }
+            }
+        }
+    });
+}
+
+// 3. Activity Heatmap (simplified bar chart)
+const heatmapCanvas = document.getElementById('activityHeatmap');
+if (heatmapCanvas) {
+    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const activityData = [12, 8, 15, 10, 9, 6, 7]; // Sample data
+
+    new Chart(heatmapCanvas, {
+        type: 'bar',
+        data: {
+            labels: dayLabels,
+            datasets: [{
+                label: 'Check-ins',
+                data: activityData,
+                backgroundColor: dayLabels.map((_, i) => {
+                    const intensity = activityData[i] / Math.max(...activityData);
+                    return `rgba(102, 126, 234, ${0.3 + intensity * 0.7})`;
+                }),
+                borderColor: '#667eea',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Activity Count' } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Weekly Activity Pattern' }
+            }
+        }
+    });
+}
+{% endif %}
+
+{% if habit_analytics %}
+// 4. Habit Radar Chart
+const radarCanvas = document.getElementById('habitRadarChart');
+if (radarCanvas) {
+    const habitNames = {{ habit_analytics.best_habits | map(attribute=0) | list | tojson | safe }};
+    const habitRates = {{ habit_analytics.best_habits | map(attribute='1.completion_rate') | list | tojson | safe }};
+
+    new Chart(radarCanvas, {
+        type: 'radar',
+        data: {
+            labels: habitNames.slice(0, 6), // Max 6 habits for readability
+            datasets: [{
+                label: 'Completion Rate',
+                data: habitRates.slice(0, 6).map(rate => rate * 100),
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: '#10b981',
+                borderWidth: 2,
+                pointBackgroundColor: '#10b981',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { callback: value => value + '%' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Habit Performance Overview' }
+            }
+        }
+    });
+}
+
+// 5. Habit Progress Chart
+const progressCanvas = document.getElementById('habitProgressChart');
+if (progressCanvas) {
+    new Chart(progressCanvas, {
+        type: 'horizontalBar',
+        data: {
+            labels: habitNames.slice(0, 5),
+            datasets: [{
+                label: 'Completion Rate',
+                data: habitRates.slice(0, 5).map(rate => rate * 100),
+                backgroundColor: [
+                    '#fbbf24', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1, // Changed from undefined to 1 for consistency
+            indexAxis: 'y',
+            scales: {
+                x: { 
+                    beginAtZero: true, 
+                    max: 100,
+                    title: { display: true, text: 'Completion Rate (%)' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: context => `${context.parsed.x.toFixed(1)}%`
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 6. Habit Success Distribution
+const successCanvas = document.getElementById('habitSuccessChart');
+if (successCanvas) {
+    // Create success rate bins
+    const bins = ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'];
+    const binCounts = [0, 0, 0, 0, 0];
+
+    habitRates.forEach(rate => {
+        const percentage = rate * 100;
+        if (percentage <= 20) binCounts[0]++;
+        else if (percentage <= 40) binCounts[1]++;
+        else if (percentage <= 60) binCounts[2]++;
+        else if (percentage <= 80) binCounts[3]++;
+        else binCounts[4]++;
+    });
+
+    new Chart(successCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: bins,
+            datasets: [{
+                data: binCounts,
+                backgroundColor: [
+                    '#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = binCounts.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                            return `${context.label}: ${context.parsed} habits (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+{% endif %}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+
+{% block title %}Insights - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<!-- Header with Wellness Score -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card mood-card">
+            <div class="card-body text-center">
+                <h2 class="mb-3">
+                    <i class="fas fa-chart-line mood-icon me-2"></i>
+                    Your Wellness Journey
+                </h2>
+                {% if current_mood == 'happy' %}
+                <p class="lead">Look at how far you've come! Your journey is beautiful and inspiring.</p>
+                {% elif current_mood == 'sad' %}
+                <p class="lead">Every step counts, even the difficult ones. You're making progress.</p>
+                {% elif current_mood == 'anxious' %}
+                <p class="lead">Understanding your patterns can bring peace and clarity.</p>
+                {% elif current_mood == 'energized' %}
+                <p class="lead">Your growth trajectory is amazing! Keep up this incredible momentum.</p>
+                {% else %}
+                <p class="lead">Your emotional journey tells a story of resilience and growth.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if wellness_score %}
+    <div class="col-md-4">
+        <div class="card mood-card">
+            <div class="card-body text-center">
+                <h6><i class="fas fa-trophy mood-icon me-2"></i>Wellness Score</h6>
+                <div class="score-circle mx-auto mb-2" style="width: 80px; height: 80px; border-radius: 50%; background: conic-gradient(var(--mood-primary) {{ wellness_score.percentage }}%, var(--mood-light) 0); display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span style="font-size: 1rem; font-weight: bold; color: var(--mood-primary);">{{ wellness_score.total_score|round|int }}</span>
+                        <small class="text-muted" style="font-size: 0.7rem;">/ {{ wellness_score.max_score }}</small>
+                    </div>
+                </div>
+                <small><strong>{{ wellness_score.level }}</strong></small>
+                <br><small class="text-muted">Last 30 days</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Enhanced Charts Section -->
+{% if mood_data %}
+<div class="row mb-4">
+    <!-- Mood Trends Line Chart -->
+    <div class="col-md-8">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-heart mood-icon me-2"></i>
+                    Mood Trends Over Time
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="moodTrendChart" style="height: 300px;"></canvas>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">Track your emotional journey with our trend analysis</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Distribution Pie Chart -->
+    <div class="col-md-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie mood-icon me-2"></i>
+                    Mood Distribution
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="moodPieChart" style="height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mood Intensity Histogram -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar mood-icon me-2"></i>
+                    Mood Intensity Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="moodHistogram" style="height: 300px;"></canvas>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">Understanding your emotional intensity patterns</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Habit Performance Charts -->
+{% if habit_data %}
+<div class="row mb-4">
+    <!-- Habit Completion Bar Chart -->
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-seedling mood-icon me-2"></i>
+                    Habit Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="habitBarChart" style="height: 300px;"></canvas>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">Your consistency creates lasting change 🌱</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Habit Success Rate Doughnut -->
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-donut mood-icon me-2"></i>
+                    Success Rates
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="habitDoughnutChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent activity timeline - Limited to last 10 entries -->
+{% if recent_entries %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-timeline mood-icon me-2"></i>
+                    Recent Activity
+                </h5>
+                <small class="text-muted">Last 10 entries</small>
+            </div>
+            <div class="card-body">
+                <div class="timeline" style="max-height: 400px; overflow-y: auto;">
+                    {% for entry in recent_entries[:10] %}
+                    <div class="timeline-item mb-3">
+                        <div class="timeline-marker">
+                            {% if entry[3] == 'mood' %}
+                                {% if entry[1] == 'happy' %}
+                                <i class="fas fa-sun text-warning"></i>
+                                {% elif entry[1] == 'sad' %}
+                                <i class="fas fa-cloud text-primary"></i>
+                                {% elif entry[1] == 'anxious' %}
+                                <i class="fas fa-leaf text-success"></i>
+                                {% elif entry[1] == 'energized' %}
+                                <i class="fas fa-bolt text-danger"></i>
+                                {% endif %}
+                            {% else %}
+                            <i class="fas fa-book text-info"></i>
+                            {% endif %}
+                        </div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <strong>
+                                    {% if entry[3] == 'mood' %}
+                                    Mood Check-in: {{ entry[1]|title }}
+                                    {% else %}
+                                    Journal Entry
+                                    {% endif %}
+                                </strong>
+                                <small class="text-muted">{{ entry[0].strftime('%m/%d %I:%M %p') }}</small>
+                            </div>
+                            {% if entry[3] == 'mood' and entry[2] %}
+                            <small class="text-muted">Intensity: {{ entry[2] }}/10</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recent_entries|length > 10 %}
+                <div class="text-center mt-3">
+                    <small class="text-muted">Showing 10 of {{ recent_entries|length }} total entries</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Insights and encouragement -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb mood-icon me-2"></i>
+                    Gentle Insights
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if mood_data %}
+                <ul class="list-unstyled insight-list">
+                    <li><i class="fas fa-chart-line mood-icon me-2"></i>You've checked in {{ mood_data|length }} times recently</li>
+                    <li><i class="fas fa-trend-up mood-icon me-2"></i>Every check-in shows your commitment to self-awareness</li>
+                    <li><i class="fas fa-heart mood-icon me-2"></i>You're building a valuable emotional vocabulary</li>
+                </ul>
+                {% else %}
+                <p class="text-muted">Start tracking your moods to see insights here. Every entry is a step toward greater self-understanding.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-star mood-icon me-2"></i>
+                    Celebration Corner
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled celebration-list">
+                    <li><i class="fas fa-trophy text-warning me-2"></i>You're taking care of your mental health</li>
+                    <li><i class="fas fa-medal text-success me-2"></i>Every entry is an act of self-love</li>
+                    <li><i class="fas fa-gem text-info me-2"></i>Your awareness is growing stronger</li>
+                    <li><i class="fas fa-crown text-warning me-2"></i>You deserve all the kindness you show yourself</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Empty state -->
+{% if not mood_data and not habit_data and not recent_entries %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Your insights will appear here</h5>
+                <p class="text-muted">Start with a mood check-in or journal entry to begin seeing your patterns and growth.</p>
+                <a href="{{ url_for('mood_checkin') }}" class="btn btn-primary">
+                    <i class="fas fa-heart me-2"></i>Start Your First Check-in
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent multiple initializations
+    if (window.chartsInitialized) {
+        return;
+    }
+    window.chartsInitialized = true;
+
+    // Clean up any existing charts
+    if (window.Chart) {
+        Object.keys(Chart.instances).forEach(key => {
+            Chart.instances[key].destroy();
+        });
+    }
+
+    // Define colors
+    const moodColors = {
+        'happy': '#fbbf24',
+        'sad': '#3b82f6', 
+        'anxious': '#10b981',
+        'energized': '#ef4444',
+        'neutral': '#6b7280'
+    };
+
+{% if mood_data %}
+// Process mood data
+const moodData = [
+    {% for entry in mood_data %}
+    {
+        date: '{{ entry.date }}',
+        mood: '{{ entry.mood_type }}',
+        intensity: {{ entry.avg_intensity }},
+        count: {{ entry.count }}
+    },
+    {% endfor %}
+];
+
+// 1. Mood Trends Line Chart
+const dates = [...new Set(moodData.map(d => d.date))].sort().slice(-14); // Last 14 days max
+const moodTypes = ['happy', 'sad', 'anxious', 'energized'];
+
+const trendDatasets = moodTypes.map(mood => {
+    const data = dates.map(date => {
+        const entry = moodData.find(d => d.date === date && d.mood === mood);
+        return entry ? entry.intensity : null;
+    });
+
+    return {
+        label: mood.charAt(0).toUpperCase() + mood.slice(1),
+        data: data,
+        borderColor: moodColors[mood],
+        backgroundColor: moodColors[mood] + '20',
+        tension: 0.4,
+        spanGaps: true,
+        pointRadius: 4,
+        pointHoverRadius: 6
+    };
+});
+
+const trendCanvas = document.getElementById('moodTrendChart');
+if (trendCanvas) {
+    new Chart(trendCanvas, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: trendDatasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    title: { display: true, text: 'Intensity (1-10)' }
+                },
+                x: { title: { display: true, text: 'Date' } }
+            },
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Mood Intensity Trends (Last 14 Days)' }
+            }
+        }
+    });
+}
+
+// 2. Mood Distribution Pie Chart
+const moodCounts = {};
+moodData.forEach(entry => {
+    moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + entry.count;
+});
+
+const pieCanvas = document.getElementById('moodPieChart');
+if (pieCanvas) {
+    new Chart(pieCanvas, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(moodCounts).map(m => m.charAt(0).toUpperCase() + m.slice(1)),
+            datasets: [{
+                data: Object.values(moodCounts),
+                backgroundColor: Object.keys(moodCounts).map(mood => moodColors[mood] || '#6b7280'),
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 3. Mood Intensity Histogram
+const intensityBins = Array(10).fill(0);
+moodData.forEach(entry => {
+    const bin = Math.min(Math.floor(entry.intensity), 9);
+    intensityBins[bin] += entry.count;
+});
+
+const histogramCanvas = document.getElementById('moodHistogram');
+if (histogramCanvas) {
+    new Chart(histogramCanvas, {
+        type: 'bar',
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+            datasets: [{
+                label: 'Frequency',
+                data: intensityBins,
+                backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                borderColor: 'rgba(102, 126, 234, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2.5,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Frequency' }
+                },
+                x: {
+                    title: { display: true, text: 'Intensity Level' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Distribution of Mood Intensities' }
+            }
+        }
+    });
+}
+{% endif %}
+
+{% if habit_data %}
+// Process habit data
+const habitData = [
+    {% for habit in habit_data %}
+    {
+        name: '{{ habit.name }}',
+        completed: {{ habit.completed_count }},
+        total: {{ habit.total_logs }},
+        completion: {{ (habit.completed_count / habit.total_logs * 100) if habit.total_logs > 0 else 0 }}
+    },
+    {% endfor %}
+];
+
+// 4. Habit Performance Bar Chart
+const barCanvas = document.getElementById('habitBarChart');
+if (barCanvas) {
+    new Chart(barCanvas, {
+        type: 'bar',
+        data: {
+            labels: habitData.map(h => h.name),
+            datasets: [{
+                label: 'Completion Rate (%)',
+                data: habitData.map(h => h.completion),
+                backgroundColor: habitData.map((_, i) => {
+                    const colors = ['#fbbf24', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#f97316'];
+                    return colors[i % colors.length];
+                }),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: { display: true, text: 'Completion Rate (%)' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const habit = habitData[context.dataIndex];
+                            return `${context.parsed.y.toFixed(1)}% (${habit.completed}/${habit.total})`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 5. Habit Success Rate Doughnut Chart
+const doughnutCanvas = document.getElementById('habitDoughnutChart');
+if (doughnutCanvas) {
+    new Chart(doughnutCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: habitData.map(h => h.name),
+            datasets: [{
+                data: habitData.map(h => h.completion),
+                backgroundColor: [
+                    '#fbbf24', '#3b82f6', '#10b981', '#ef4444', 
+                    '#8b5cf6', '#f97316', '#06b6d4', '#84cc16'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const habit = habitData[context.dataIndex];
+                            return `${context.label}: ${context.parsed.toFixed(1)}% (${habit.completed}/${habit.total})`;
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+}
+{% endif %}
+});
+</script>
+{% endblock %}

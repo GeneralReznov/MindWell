@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Mood Check-in - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header with mood-sensitive messaging -->
+        <div class="card mood-card mb-4">
+            <div class="card-body text-center">
+                {% if current_mood == 'happy' %}
+                    <h2 class="mb-3">🌟 Sharing your brightness</h2>
+                    <p class="lead">Your joy is contagious! Let's capture this beautiful moment in your journey.</p>
+                {% elif current_mood == 'sad' %}
+                    <h2 class="mb-3">🤗 A safe space for your feelings</h2>
+                    <p class="lead">Thank you for trusting us with your emotions. Every feeling deserves to be acknowledged.</p>
+                {% elif current_mood == 'anxious' %}
+                    <h2 class="mb-3">🌿 Taking it one breath at a time</h2>
+                    <p class="lead">Let's gently explore what you're experiencing. You're safe here, and we'll go at your pace.</p>
+                {% elif current_mood == 'energized' %}
+                    <h2 class="mb-3">⚡ Channeling your amazing energy</h2>
+                    <p class="lead">Your vitality is incredible! Let's capture this powerful moment in your emotional journey.</p>
+                {% else %}
+                    <h2 class="mb-3">🌅 How are you feeling today?</h2>
+                    <p class="lead">This is your safe space to express yourself. Whatever you're feeling is valid and important.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Mood check-in form -->
+        <form method="POST" class="mood-checkin-form">
+            <div class="card mood-card">
+                <div class="card-body">
+                    <!-- Mood selection -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">What describes your mood right now?</h5>
+                        <div class="mood-options">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="mood_type" id="mood_happy" value="happy" required>
+                                    <label class="btn btn-outline-warning w-100 mood-option" for="mood_happy">
+                                        <i class="fas fa-sun fa-2x d-block mb-2"></i>
+                                        <span>Happy</span>
+                                        <small class="d-block text-muted">Joyful, content</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="mood_type" id="mood_sad" value="sad" required>
+                                    <label class="btn btn-outline-primary w-100 mood-option" for="mood_sad">
+                                        <i class="fas fa-cloud fa-2x d-block mb-2"></i>
+                                        <span>Sad</span>
+                                        <small class="d-block text-muted">Down, melancholy</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="mood_type" id="mood_anxious" value="anxious" required>
+                                    <label class="btn btn-outline-success w-100 mood-option" for="mood_anxious">
+                                        <i class="fas fa-leaf fa-2x d-block mb-2"></i>
+                                        <span>Anxious</span>
+                                        <small class="d-block text-muted">Worried, restless</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="mood_type" id="mood_energized" value="energized" required>
+                                    <label class="btn btn-outline-danger w-100 mood-option" for="mood_energized">
+                                        <i class="fas fa-bolt fa-2x d-block mb-2"></i>
+                                        <span>Energized</span>
+                                        <small class="d-block text-muted">Motivated, excited</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Intensity slider -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">How intense is this feeling?</h5>
+                        <div class="intensity-slider">
+                            <label for="intensity" class="form-label">
+                                <span class="intensity-value">5</span> out of 10
+                            </label>
+                            <input type="range" class="form-range mood-range" id="intensity" name="intensity" 
+                                   min="1" max="10" value="5" step="1">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Mild</small>
+                                <small class="text-muted">Intense</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Optional notes -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Would you like to share more? (Optional)</h5>
+                        <textarea class="form-control mood-textarea" name="notes" rows="4" 
+                                  placeholder="What's on your mind? You can share as much or as little as you'd like..."></textarea>
+                    </div>
+
+                    <!-- Submit button -->
+                    <div class="text-center">
+                        <button type="submit" class="btn mood-btn btn-lg px-5">
+                            <i class="fas fa-heart me-2"></i>
+                            Complete Check-in
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Supportive message -->
+        <div class="card bg-light mt-4">
+            <div class="card-body text-center">
+                <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Your emotional check-ins help us create a more supportive experience for you. 
+                    Your data is private and secure.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Update intensity display
+document.getElementById('intensity').addEventListener('input', function() {
+    document.querySelector('.intensity-value').textContent = this.value;
+});
+
+// Add mood selection feedback
+document.querySelectorAll('input[name="mood_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        // Add visual feedback for selected mood
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        this.nextElementSibling.classList.add('selected');
+    });
+});
+</script>
+{% endblock %}

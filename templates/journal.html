@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Journal - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- New entry form -->
+    <div class="col-lg-8 mb-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-feather-alt mood-icon me-2"></i>
+                    {% if current_mood == 'happy' %}
+                        Share your joy and insights
+                    {% elif current_mood == 'sad' %}
+                        Express yourself in this safe space
+                    {% elif current_mood == 'anxious' %}
+                        Let your thoughts flow freely
+                    {% elif current_mood == 'energized' %}
+                        Channel your energy into words
+                    {% else %}
+                        Your thoughts matter
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <input type="text" class="form-control mood-input" name="title" 
+                               placeholder="Give your entry a title (optional)">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <textarea class="form-control mood-textarea" name="content" rows="8" 
+                                  placeholder="{% if current_mood == 'happy' %}What's bringing you joy today? Share the beautiful moments...{% elif current_mood == 'sad' %}What's weighing on your heart? It's okay to let it out...{% elif current_mood == 'anxious' %}What thoughts are swirling in your mind? Writing can help bring clarity...{% elif current_mood == 'energized' %}What exciting ideas are flowing through you? Capture this energy...{% else %}What's on your mind today? This is your space to be authentic...{% endif %}" 
+                                  required></textarea>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn mood-btn">
+                            <i class="fas fa-save me-2"></i>
+                            Save Entry
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI-powered and mood-based prompts -->
+    <div class="col-lg-4 mb-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-robot mood-icon me-2"></i>
+                    AI Writing Prompt
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if ai_prompt %}
+                <div class="alert alert-light border-start border-4" style="border-color: var(--mood-primary) !important;">
+                    <i class="fas fa-quote-left mood-icon me-2"></i>
+                    <em>{{ ai_prompt }}</em>
+                </div>
+                {% endif %}
+                
+                <h6 class="mt-3 mb-2">
+                    <i class="fas fa-lightbulb mood-icon me-2"></i>
+                    More Ideas
+                </h6>
+            </div>
+            <div class="card-body pt-0">
+                {% if current_mood == 'happy' %}
+                <ul class="list-unstyled prompt-list">
+                    <li><i class="fas fa-sun text-warning me-2"></i>What made you smile today?</li>
+                    <li><i class="fas fa-heart text-danger me-2"></i>Who are you grateful for?</li>
+                    <li><i class="fas fa-star text-warning me-2"></i>What accomplishment are you proud of?</li>
+                    <li><i class="fas fa-gift text-primary me-2"></i>How can you share this joy?</li>
+                </ul>
+                {% elif current_mood == 'sad' %}
+                <ul class="list-unstyled prompt-list">
+                    <li><i class="fas fa-cloud text-primary me-2"></i>What emotions are you feeling right now?</li>
+                    <li><i class="fas fa-hands-helping text-info me-2"></i>What support do you need today?</li>
+                    <li><i class="fas fa-heart text-danger me-2"></i>What would you tell a friend feeling this way?</li>
+                    <li><i class="fas fa-seedling text-success me-2"></i>What small thing could comfort you?</li>
+                </ul>
+                {% elif current_mood == 'anxious' %}
+                <ul class="list-unstyled prompt-list">
+                    <li><i class="fas fa-leaf text-success me-2"></i>What specific worries are on your mind?</li>
+                    <li><i class="fas fa-anchor text-info me-2"></i>What helps you feel grounded?</li>
+                    <li><i class="fas fa-shield-alt text-primary me-2"></i>What is within your control today?</li>
+                    <li><i class="fas fa-dove text-light me-2"></i>What would bring you peace right now?</li>
+                </ul>
+                {% elif current_mood == 'energized' %}
+                <ul class="list-unstyled prompt-list">
+                    <li><i class="fas fa-bolt text-warning me-2"></i>What's fueling your energy today?</li>
+                    <li><i class="fas fa-rocket text-danger me-2"></i>What goals are you excited about?</li>
+                    <li><i class="fas fa-mountain text-success me-2"></i>What challenges do you want to tackle?</li>
+                    <li><i class="fas fa-sparkles text-warning me-2"></i>How can you use this energy positively?</li>
+                </ul>
+                {% else %}
+                <ul class="list-unstyled prompt-list">
+                    <li><i class="fas fa-circle text-muted me-2"></i>How are you feeling in this moment?</li>
+                    <li><i class="fas fa-calendar text-info me-2"></i>What happened today?</li>
+                    <li><i class="fas fa-heart text-danger me-2"></i>What are you grateful for?</li>
+                    <li><i class="fas fa-compass text-primary me-2"></i>What direction do you want to go?</li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Previous entries -->
+{% if entries %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-book-open mood-icon me-2"></i>
+                    Your Journey in Words
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for entry in entries %}
+                <div class="journal-entry mb-4 p-3 rounded mood-context-{{ entry.mood_context }}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">{{ entry.title }}</h6>
+                        <div class="text-end">
+                            <small class="text-muted">{{ entry.timestamp.strftime('%B %d, %Y') }}</small>
+                            {% if entry.mood_context %}
+                            <br><small class="mood-context-badge">
+                                {% if entry.mood_context == 'happy' %}
+                                    <i class="fas fa-sun text-warning"></i> Happy
+                                {% elif entry.mood_context == 'sad' %}
+                                    <i class="fas fa-cloud text-primary"></i> Sad
+                                {% elif entry.mood_context == 'anxious' %}
+                                    <i class="fas fa-leaf text-success"></i> Anxious
+                                {% elif entry.mood_context == 'energized' %}
+                                    <i class="fas fa-bolt text-danger"></i> Energized
+                                {% endif %}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="journal-content">
+                        {{ entry.content|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                {% if not loop.last %}<hr class="my-4">{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Your journal is waiting for your first entry</h5>
+                <p class="text-muted">This is a safe space for your thoughts, feelings, and reflections.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<!-- User info card and welcome section -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="welcome-card mood-card" data-aos="fade-right" data-aos-duration="800">
+            {% if current_mood == 'happy' %}
+                <h1 class="display-6 mb-3">✨ What a wonderful day to be you! ✨</h1>
+                <p class="lead">Your positive energy is shining bright. Let's keep building on this beautiful momentum together.</p>
+            {% elif current_mood == 'sad' %}
+                <h1 class="display-6 mb-3">🤗 You're not alone in this</h1>
+                <p class="lead">It's okay to feel sad. These feelings are valid, and we're here to support you through this gentle journey.</p>
+            {% elif current_mood == 'anxious' %}
+                <h1 class="display-6 mb-3">🌿 Let's find some calm together</h1>
+                <p class="lead">Take a deep breath. You're safe here. Let's work through these feelings one step at a time.</p>
+            {% elif current_mood == 'energized' %}
+                <h1 class="display-6 mb-3">⚡ Ready to conquer the world!</h1>
+                <p class="lead">Your energy is amazing! Let's channel this incredible motivation into meaningful actions.</p>
+            {% else %}
+                <h1 class="display-6 mb-3">🌅 Welcome to your mindful space</h1>
+                <p class="lead">This is your sanctuary for growth, reflection, and self-care. How are you feeling today?</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mood-card h-100" data-aos="fade-left" data-aos-duration="800">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    {% if user.photo_url %}
+                        <img src="{{ user.photo_url }}" alt="{{ user.display_name }}" 
+                             style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    display: flex; align-items: center; justify-content: center; margin: 0 auto; color: white; font-size: 1.5rem;">
+                            🧠
+                        </div>
+                    {% endif %}
+                </div>
+                <h6 class="card-title mb-1">{{ user.display_name or 'MindWell User' }}</h6>
+                <p class="card-text text-muted small mb-3">{{ user.email }}</p>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick actions -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3 mb-3">
+        <a href="{{ url_for('mood_checkin') }}" class="card mood-card action-card h-100 text-decoration-none" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-body text-center">
+                <i class="fas fa-heart fa-2x mb-3 mood-icon"></i>
+                <h5 class="card-title">Check-in</h5>
+                <p class="card-text">How are you feeling right now?</p>
+            </div>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-3">
+        <a href="{{ url_for('journal') }}" class="card mood-card action-card h-100 text-decoration-none" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-body text-center">
+                <i class="fas fa-feather-alt fa-2x mb-3 mood-icon"></i>
+                <h5 class="card-title">Journal</h5>
+                <p class="card-text">Express your thoughts freely</p>
+            </div>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-3">
+        <a href="{{ url_for('habits') }}" class="card mood-card action-card h-100 text-decoration-none" data-aos="fade-up" data-aos-delay="300">
+            <div class="card-body text-center">
+                <i class="fas fa-seedling fa-2x mb-3 mood-icon"></i>
+                <h5 class="card-title">Habits</h5>
+                <p class="card-text">Small steps, big changes</p>
+            </div>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-3">
+        <a href="{{ url_for('history') }}" class="card mood-card action-card h-100 text-decoration-none" data-aos="fade-up" data-aos-delay="400">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-2x mb-3 mood-icon"></i>
+                <h5 class="card-title">Insights</h5>
+                <p class="card-text">Your growth journey</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- AI-powered daily affirmation -->
+{% if daily_affirmation %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card" style="background: linear-gradient(135deg, var(--mood-light), var(--mood-bg));">
+            <div class="card-body text-center">
+                <h5 class="mb-3">
+                    <i class="fas fa-sparkles mood-icon me-2"></i>
+                    Today's Affirmation
+                </h5>
+                <p class="lead mb-0" style="font-style: italic; color: var(--mood-text);">
+                    "{{ daily_affirmation }}"
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- AI Mood Insights -->
+{% if mood_insight %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-brain mood-icon me-2"></i>
+                    Your Wellness Insights
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="insight-box p-3 rounded" style="background: var(--mood-light); border-left: 4px solid var(--mood-primary);">
+                            <h6><i class="fas fa-lightbulb mood-icon me-2"></i>Pattern Insight</h6>
+                            <p class="mb-0">{{ mood_insight.insight }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="insight-box p-3 rounded" style="background: var(--mood-light); border-left: 4px solid var(--mood-secondary);">
+                            <h6><i class="fas fa-compass mood-icon me-2"></i>Recommendation</h6>
+                            <p class="mb-0">{{ mood_insight.recommendation }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="insight-box p-3 rounded" style="background: var(--mood-light); border-left: 4px solid var(--mood-accent);">
+                            <h6><i class="fas fa-heart mood-icon me-2"></i>Supportive Message</h6>
+                            <p class="mb-0">{{ mood_insight.supportive_message }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Today's habits -->
+{% if habits %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-seedling mood-icon me-2"></i>
+                    Today's Gentle Reminders
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for habit in habits[:4] %}
+                    <div class="col-md-6 col-lg-3 mb-2">
+                        <div class="habit-quick-check">
+                            {% if habit.id in completed_today %}
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="text-success">{{ habit.name }}</span>
+                            {% else %}
+                                <i class="far fa-circle mood-icon me-2"></i>
+                                <span>{{ habit.name }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('habits') }}" class="btn btn-sm mood-btn">
+                        View all habits <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent mood pattern -->
+{% if recent_moods %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-area mood-icon me-2"></i>
+                    Your Recent Journey
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mood-timeline">
+                    {% for mood in recent_moods %}
+                    <div class="mood-point" data-mood="{{ mood.mood_type }}">
+                        <div class="mood-dot"></div>
+                        <small class="mood-label">{{ mood.timestamp.strftime('%m/%d') }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        Every feeling is a step in your journey. You're doing great. 💙
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent journal entries -->
+{% if recent_journals %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-book-open mood-icon me-2"></i>
+                    Recent Reflections
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for entry in recent_journals %}
+                <div class="journal-preview mb-3">
+                    <h6 class="mb-1">{{ entry.title }}</h6>
+                    <p class="mb-1 text-muted">
+                        {{ entry.content[:100] }}{% if entry.content|length > 100 %}...{% endif %}
+                    </p>
+                    <small class="text-muted">
+                        {{ entry.timestamp.strftime('%B %d, %Y at %I:%M %p') }}
+                    </small>
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('journal') }}" class="btn btn-sm mood-btn">
+                        Read more entries <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Mood testing (development only) -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <small class="text-muted">Quick mood preview:</small>
+                <div class="mt-2">
+                    <a href="{{ url_for('set_mood', mood_type='happy') }}" class="badge bg-warning text-dark me-1">Happy</a>
+                    <a href="{{ url_for('set_mood', mood_type='sad') }}" class="badge bg-primary me-1">Sad</a>
+                    <a href="{{ url_for('set_mood', mood_type='anxious') }}" class="badge bg-success me-1">Anxious</a>
+                    <a href="{{ url_for('set_mood', mood_type='energized') }}" class="badge bg-danger me-1">Energized</a>
+                    <a href="{{ url_for('set_mood', mood_type='neutral') }}" class="badge bg-secondary">Neutral</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

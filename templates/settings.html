@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-body text-center">
+                <h2 class="mb-3">
+                    <i class="fas fa-cogs mood-icon me-2"></i>
+                    Settings & Data Management
+                </h2>
+                <p class="lead">Manage your data, privacy, and app preferences</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database mood-icon me-2"></i>
+                    Your Data Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if backup_summary.summary %}
+                <div class="row">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ backup_summary.summary.mood_entries }}</h3>
+                            <small class="text-muted">Mood Check-ins</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ backup_summary.summary.journal_entries }}</h3>
+                            <small class="text-muted">Journal Entries</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ backup_summary.summary.active_habits }}</h3>
+                            <small class="text-muted">Active Habits</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="stat-box text-center p-3 rounded" style="background: var(--mood-light);">
+                            <h3 style="color: var(--mood-primary);">{{ backup_summary.summary.habit_logs }}</h3>
+                            <small class="text-muted">Habit Logs</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="text-center">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Your data is stored securely and privately. Only you have access to your personal information.
+                    </p>
+                    <small class="text-muted">Last updated: {{ backup_summary.last_updated[:19] if backup_summary.last_updated }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Export -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-download mood-icon me-2"></i>
+                    Export Your Data
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Download a complete backup of all your data in your preferred format.</p>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('export_data', format='json') }}" class="btn mood-btn">
+                        <i class="fas fa-file-code me-2"></i>
+                        Download as JSON
+                    </a>
+                    <a href="{{ url_for('export_data', format='csv') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-file-csv me-2"></i>
+                        Download as CSV
+                    </a>
+                </div>
+                
+                <hr>
+                
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>JSON:</strong> Complete structured data with all details<br>
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>CSV:</strong> Spreadsheet-friendly format for analysis
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Data Import -->
+    <div class="col-md-6">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-upload mood-icon me-2"></i>
+                    Import Data
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Restore data from a previous export or transfer from another device.</p>
+                
+                <form method="POST" action="{{ url_for('import_data') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" class="form-control mood-input" name="file" accept=".json" required>
+                        <small class="form-text text-muted">Only JSON export files are supported for import.</small>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn mood-btn">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                            Import Data
+                        </button>
+                    </div>
+                </form>
+                
+                <hr>
+                
+                <div class="alert alert-light">
+                    <small>
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Importing will add to your existing data. Duplicate entries are automatically avoided.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- App Settings -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-palette mood-icon me-2"></i>
+                    Theme & Experience
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Current Mood Theme</h6>
+                        <p class="text-muted">Your interface adapts to your emotional state for a more supportive experience.</p>
+                        
+                        <div class="mood-preview-grid">
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <a href="{{ url_for('set_mood', mood_type='happy') }}" class="mood-preview-card text-decoration-none">
+                                        <div class="card text-center p-2 {% if current_mood == 'happy' %}border-warning{% endif %}" style="border-width: 2px;">
+                                            <i class="fas fa-sun text-warning fa-2x mb-1"></i>
+                                            <small>Happy</small>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a href="{{ url_for('set_mood', mood_type='sad') }}" class="mood-preview-card text-decoration-none">
+                                        <div class="card text-center p-2 {% if current_mood == 'sad' %}border-primary{% endif %}" style="border-width: 2px;">
+                                            <i class="fas fa-cloud text-primary fa-2x mb-1"></i>
+                                            <small>Sad</small>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a href="{{ url_for('set_mood', mood_type='anxious') }}" class="mood-preview-card text-decoration-none">
+                                        <div class="card text-center p-2 {% if current_mood == 'anxious' %}border-success{% endif %}" style="border-width: 2px;">
+                                            <i class="fas fa-leaf text-success fa-2x mb-1"></i>
+                                            <small>Anxious</small>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a href="{{ url_for('set_mood', mood_type='energized') }}" class="mood-preview-card text-decoration-none">
+                                        <div class="card text-center p-2 {% if current_mood == 'energized' %}border-danger{% endif %}" style="border-width: 2px;">
+                                            <i class="fas fa-bolt text-danger fa-2x mb-1"></i>
+                                            <small>Energized</small>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-4">
+                                    <a href="{{ url_for('set_mood', mood_type='neutral') }}" class="mood-preview-card text-decoration-none">
+                                        <div class="card text-center p-2 {% if current_mood == 'neutral' %}border-secondary{% endif %}" style="border-width: 2px;">
+                                            <i class="fas fa-circle text-secondary fa-2x mb-1"></i>
+                                            <small>Neutral</small>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>AI Features</h6>
+                        <p class="text-muted">Your mental health tracker is enhanced with compassionate AI that provides personalized insights and support.</p>
+                        
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Daily personalized affirmations
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Mood pattern analysis & insights
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Smart habit recommendations
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                AI-powered journal prompts
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Supportive response to entries
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy & Security -->
+<div class="row">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-shield-alt mood-icon me-2"></i>
+                    Privacy & Security
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>Your Privacy Matters</h6>
+                        <p class="text-muted">
+                            Your mental health data is deeply personal, and we treat it with the utmost care and respect. Here's how we protect your privacy:
+                        </p>
+                        
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-lock text-success me-2"></i>
+                                All data is stored securely with encryption
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-user-shield text-success me-2"></i>
+                                No personal data is shared with third parties
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-database text-success me-2"></i>
+                                You have full control over your data export and deletion
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-eye-slash text-success me-2"></i>
+                                AI processing is done with privacy-focused methods
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-server text-success me-2"></i>
+                                Data is stored locally on secure servers
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="alert alert-light text-center">
+                            <i class="fas fa-heart text-danger fa-2x mb-2"></i>
+                            <h6>Your Wellness Journey</h6>
+                            <small class="text-muted">
+                                Every feature is designed with your mental health and privacy in mind. 
+                                You deserve a safe, supportive space for your personal growth.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

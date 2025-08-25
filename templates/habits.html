@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Habits - Mental Health Tracker{% endblock %}
+
+{% block content %}
+<!-- Add new habit -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-seedling mood-icon me-2"></i>
+                    {% if current_mood == 'happy' %}
+                        Nurture your positive momentum
+                    {% elif current_mood == 'sad' %}
+                        Gentle steps toward healing
+                    {% elif current_mood == 'anxious' %}
+                        Calming routines for peace
+                    {% elif current_mood == 'energized' %}
+                        Channel your energy into growth
+                    {% else %}
+                        Build habits that serve your wellbeing
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="action" value="add_habit">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <input type="text" class="form-control mood-input" name="name" 
+                                   placeholder="{% if current_mood == 'anxious' %}e.g., 5-minute breathing exercise{% elif current_mood == 'sad' %}e.g., Listen to uplifting music{% elif current_mood == 'energized' %}e.g., 10-minute morning walk{% else %}e.g., Drink a glass of water{% endif %}" 
+                                   required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <input type="text" class="form-control mood-input" name="description" 
+                                   placeholder="Why this matters to you (optional)">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <button type="submit" class="btn mood-btn w-100">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI-powered habit suggestions -->
+    <div class="col-lg-4">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-robot mood-icon me-2"></i>
+                    AI Recommendations
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if ai_suggestions %}
+                <div class="ai-suggestions mb-3">
+                    {% for suggestion in ai_suggestions %}
+                    <div class="suggestion-card p-2 mb-2 rounded" style="background: var(--mood-light); border-left: 3px solid var(--mood-primary);">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <strong class="text-truncate">{{ suggestion.habit_name }}</strong>
+                            <small class="badge" style="background: var(--mood-accent); color: white;">{{ suggestion.difficulty_level }}</small>
+                        </div>
+                        <p class="mb-1 small text-muted">{{ suggestion.description }}</p>
+                        <small class="text-muted"><i class="fas fa-info-circle me-1"></i>{{ suggestion.why_helpful }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <h6 class="mb-2">
+                    <i class="fas fa-lightbulb mood-icon me-2"></i>
+                    Quick Ideas
+                </h6>
+            </div>
+            <div class="card-body pt-0">
+                {% if current_mood == 'happy' %}
+                <ul class="list-unstyled suggestion-list">
+                    <li><i class="fas fa-smile text-warning me-2"></i>Share a compliment</li>
+                    <li><i class="fas fa-camera text-info me-2"></i>Capture a beautiful moment</li>
+                    <li><i class="fas fa-music text-primary me-2"></i>Dance to your favorite song</li>
+                    <li><i class="fas fa-phone text-success me-2"></i>Call someone you love</li>
+                </ul>
+                {% elif current_mood == 'sad' %}
+                <ul class="list-unstyled suggestion-list">
+                    <li><i class="fas fa-mug-hot text-info me-2"></i>Enjoy a warm drink</li>
+                    <li><i class="fas fa-bath text-primary me-2"></i>Take a soothing bath</li>
+                    <li><i class="fas fa-book text-success me-2"></i>Read something comforting</li>
+                    <li><i class="fas fa-heart text-danger me-2"></i>Practice self-compassion</li>
+                </ul>
+                {% elif current_mood == 'anxious' %}
+                <ul class="list-unstyled suggestion-list">
+                    <li><i class="fas fa-lungs text-success me-2"></i>Deep breathing exercise</li>
+                    <li><i class="fas fa-leaf text-success me-2"></i>Spend time in nature</li>
+                    <li><i class="fas fa-om text-info me-2"></i>5-minute meditation</li>
+                    <li><i class="fas fa-list text-primary me-2"></i>Write down worries</li>
+                </ul>
+                {% elif current_mood == 'energized' %}
+                <ul class="list-unstyled suggestion-list">
+                    <li><i class="fas fa-running text-danger me-2"></i>Go for a brisk walk</li>
+                    <li><i class="fas fa-broom text-warning me-2"></i>Organize your space</li>
+                    <li><i class="fas fa-pen text-primary me-2"></i>Start a creative project</li>
+                    <li><i class="fas fa-dumbbell text-success me-2"></i>Quick workout</li>
+                </ul>
+                {% else %}
+                <ul class="list-unstyled suggestion-list">
+                    <li><i class="fas fa-glass-water text-info me-2"></i>Drink water</li>
+                    <li><i class="fas fa-sun text-warning me-2"></i>Get some sunlight</li>
+                    <li><i class="fas fa-mobile text-primary me-2"></i>Digital break</li>
+                    <li><i class="fas fa-gratitude text-success me-2"></i>Note three good things</li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current habits -->
+{% if habits %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mood-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-check-circle mood-icon me-2"></i>
+                    Today's Habits
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for habit in habits %}
+                    <div class="col-lg-6 mb-3">
+                        <div class="habit-card p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ habit.name }}</h6>
+                                    {% if habit.description %}
+                                    <small class="text-muted">{{ habit.description }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="habit-status ms-3">
+                                    {% if habit.id in habit_status and habit_status[habit.id] %}
+                                        {% if habit_status[habit.id].completed %}
+                                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                                        {% else %}
+                                        <i class="fas fa-times-circle fa-2x text-warning"></i>
+                                        {% endif %}
+                                    {% else %}
+                                    <i class="far fa-circle fa-2x mood-icon"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Quick action buttons -->
+                            <div class="habit-actions">
+                                {% if habit.id not in habit_status or not habit_status[habit.id] %}
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="log_habit">
+                                    <input type="hidden" name="habit_id" value="{{ habit.id }}">
+                                    <input type="hidden" name="completed" value="true">
+                                    <button type="submit" class="btn btn-sm mood-btn me-2">
+                                        <i class="fas fa-check"></i> Done
+                                    </button>
+                                </form>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="log_habit">
+                                    <input type="hidden" name="habit_id" value="{{ habit.id }}">
+                                    <input type="hidden" name="completed" value="false">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-times"></i> Skip
+                                    </button>
+                                </form>
+                                {% else %}
+                                <small class="text-success">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Logged at {{ habit_status[habit.id].timestamp.strftime('%I:%M %p') }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-seedling fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ready to plant some seeds of positive change?</h5>
+                <p class="text-muted">Start with small, manageable habits that support your wellbeing.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Motivational quote -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <blockquote class="blockquote mb-0">
+                    {% if current_mood == 'happy' %}
+                    <p class="mb-1">"Happiness is not by chance, but by choice." - Jim Rohn</p>
+                    {% elif current_mood == 'sad' %}
+                    <p class="mb-1">"You are braver than you believe, stronger than you seem, and more loved than you'll ever know." - A.A. Milne</p>
+                    {% elif current_mood == 'anxious' %}
+                    <p class="mb-1">"You have been assigned this mountain to show others it can be moved." - Mel Robbins</p>
+                    {% elif current_mood == 'energized' %}
+                    <p class="mb-1">"The only impossible journey is the one you never begin." - Tony Robbins</p>
+                    {% else %}
+                    <p class="mb-1">"Progress, not perfection." - Anonymous</p>
+                    {% endif %}
+                </blockquote>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
