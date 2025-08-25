@@ -21,7 +21,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure the database
 os.environ['DATABASE_URL']="postgresql://neondb_owner:npg_3kwA6KTBGVci@ep-jolly-surf-af4x4sxk.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ(["DATABASE_URL"],os.eniviron.get("sqlite:///mental_health_tracker.db"))
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///mental_health_tracker.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
