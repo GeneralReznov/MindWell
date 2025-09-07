@@ -36,7 +36,7 @@ def login_required(f):
 
 @app.route('/auth')
 def auth():
-    os.environ['FIREBASE_API_KEY']="AIzaSyBMVvoQdEt2yXLKSsShGRcH7okZQq1iEeE"
+    os.environ['FIREBASE_API_KEY']=""
     os.environ['FIREBASE_APP_ID']="1:839113527023:web:6a3edbcce6ff9d48bd951a"
     os.environ['FIREBASE_PROJECT_ID']="mindwell-ed478"
     # Always show auth page - let user see the beautiful design
