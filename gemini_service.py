@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from models import MoodEntry, JournalEntry, HabitLog
 
 # Initialize Gemini client
-os.environ['GEMINI_API_KEY']="AIzaSyChpIrLMzJc42ETm0jS4KiKC_ra9Gv1_vE"
+os.environ['GEMINI_API_KEY']=""
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 class MoodInsight(BaseModel):
